@@ -66,24 +66,27 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ results, sql, safe
   if (!results || results.length === 0) return null;
 
   return (
-    <div className="flex gap-1 mt-2">
+    <div className="flex gap-1.5">
       <button
         onClick={exportCSV}
-        className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition-colors"
+        className="px-2.5 py-1 text-[11px] rounded-md border transition-opacity hover:opacity-70"
+        style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
         title="Export as CSV"
       >
-        CSV
+        Export CSV
       </button>
       <button
         onClick={exportJSON}
-        className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition-colors"
+        className="px-2.5 py-1 text-[11px] rounded-md border transition-opacity hover:opacity-70"
+        style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
         title="Export as JSON"
       >
         JSON
       </button>
       <button
         onClick={exportReport}
-        className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-slate-300 transition-colors"
+        className="px-2.5 py-1 text-[11px] rounded-md border transition-opacity hover:opacity-70"
+        style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
         title="Export full report"
       >
         Report

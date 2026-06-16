@@ -25,38 +25,39 @@ export const ResultTable: React.FC<ResultTableProps> = ({ results, maxRows = 50 
   });
 
   const handleSort = (col: string) => {
-    if (sortCol === col) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortCol(col);
-      setSortDir('asc');
-    }
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('asc'); }
   };
 
   return (
-    <div className="my-2 border border-slate-700 rounded-lg overflow-hidden">
+    <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
       <div className="overflow-x-auto max-h-64">
         <table className="w-full text-xs">
-          <thead className="bg-slate-800 sticky top-0">
+          <thead className="sticky top-0" style={{ background: 'var(--bg-elevated)' }}>
             <tr>
               {columns.map(col => (
                 <th
                   key={col}
                   onClick={() => handleSort(col)}
-                  className="px-3 py-2 text-left text-slate-400 font-medium cursor-pointer hover:text-white whitespace-nowrap"
+                  className="px-3 py-2.5 text-left font-medium cursor-pointer whitespace-nowrap border-b transition-colors"
+                  style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)' }}
                 >
-                  {col}
-                  {sortCol === col && (sortDir === 'asc' ? ' ↑' : ' ↓')}
+                  <span className="flex items-center gap-1">
+                    {col}
+                    {sortCol === col && (
+                      <span style={{ color: 'var(--accent)' }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
+          <tbody>
             {sortedResults.map((row, i) => (
-              <tr key={i} className="hover:bg-slate-800/50">
+              <tr key={i} className="border-b" style={{ borderColor: 'var(--border)' }}>
                 {columns.map(col => (
-                  <td key={col} className="px-3 py-1.5 text-slate-300 whitespace-nowrap">
-                    {row[col] === null ? <span className="text-slate-600">NULL</span> : String(row[col])}
+                  <td key={col} className="px-3 py-2 whitespace-nowrap font-mono" style={{ color: 'var(--text-primary)' }}>
+                    {row[col] === null ? <span style={{ color: 'var(--text-muted)' }}>NULL</span> : String(row[col])}
                   </td>
                 ))}
               </tr>
@@ -65,7 +66,7 @@ export const ResultTable: React.FC<ResultTableProps> = ({ results, maxRows = 50 
         </table>
       </div>
       {results.length > maxRows && (
-        <div className="px-3 py-2 bg-slate-800 text-xs text-slate-500 border-t border-slate-700">
+        <div className="px-3 py-2 text-xs text-center border-t" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)', borderColor: 'var(--border)' }}>
           Showing {maxRows} of {results.length} rows
         </div>
       )}

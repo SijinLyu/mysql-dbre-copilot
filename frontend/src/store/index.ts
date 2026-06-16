@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { ChatMessage, Connection, Favorite } from '../types';
 
+type Theme = 'dark' | 'light';
+
 interface AppState {
   // Chat
   messages: ChatMessage[];
@@ -29,6 +31,8 @@ interface AppState {
   // UI
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+  theme: Theme;
+  toggleTheme: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -62,4 +66,10 @@ export const useStore = create<AppState>((set) => ({
   // UI state
   sidebarOpen: true,
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  theme: (localStorage.getItem('theme') as Theme) || 'dark',
+  toggleTheme: () => set((state) => {
+    const next = state.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    return { theme: next };
+  }),
 }));

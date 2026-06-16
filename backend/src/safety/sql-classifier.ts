@@ -27,8 +27,8 @@ export class SqlClassifier {
     if (/^\s*UPDATE\s/i.test(sql)) return 'UPDATE';
     if (/^\s*DELETE\s/i.test(sql)) return 'DELETE';
 
-    // SELECT (including WITH ... SELECT)
-    if (/^\s*(SELECT|WITH)\s/i.test(sql)) return 'SELECT';
+    // SELECT (including WITH ... SELECT, SHOW, DESCRIBE, EXPLAIN)
+    if (/^\s*(SELECT|WITH|SHOW|DESCRIBE|DESC|EXPLAIN)\s/i.test(sql)) return 'SELECT';
 
     return 'OTHER';
   }

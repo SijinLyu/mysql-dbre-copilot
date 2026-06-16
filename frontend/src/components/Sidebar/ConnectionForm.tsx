@@ -27,11 +27,8 @@ export const ConnectionForm: React.FC = () => {
       });
 
       addConnection({
-        id: form.id,
-        host: form.host,
-        port: parseInt(form.port, 10),
-        user: form.user,
-        database: form.database,
+        id: form.id, host: form.host, port: parseInt(form.port, 10),
+        user: form.user, database: form.database,
       });
       setActiveConnection(form.id, form.database);
       setIsOpen(false);
@@ -43,11 +40,18 @@ export const ConnectionForm: React.FC = () => {
     }
   };
 
+  const inputStyle = {
+    background: 'var(--bg-base)',
+    color: 'var(--text-primary)',
+    borderColor: 'var(--border)',
+  };
+
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full px-3 py-2 text-sm text-primary-400 border border-dashed border-slate-600 rounded-lg hover:bg-slate-700/50 transition-colors"
+        className="w-full px-3 py-2 text-sm rounded-lg border border-dashed transition-opacity hover:opacity-70"
+        style={{ borderColor: 'var(--border)', color: 'var(--accent)' }}
       >
         + Add Connection
       </button>
@@ -55,66 +59,31 @@ export const ConnectionForm: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 bg-slate-900 rounded-lg border border-slate-700 space-y-2">
-      <input
-        placeholder="Connection ID (e.g., prod)"
-        value={form.id}
-        onChange={e => setForm({ ...form, id: e.target.value })}
-        required
-        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-      />
+    <form onSubmit={handleSubmit} className="p-3 rounded-lg border space-y-2" style={{ background: 'var(--bg-base)', borderColor: 'var(--border)' }}>
+      <input placeholder="Connection ID (e.g., prod)" value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} required
+        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none focus:border-current" style={inputStyle} />
       <div className="flex gap-2">
-        <input
-          placeholder="Host"
-          value={form.host}
-          onChange={e => setForm({ ...form, host: e.target.value })}
-          required
-          className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-        />
-        <input
-          placeholder="Port"
-          value={form.port}
-          onChange={e => setForm({ ...form, port: e.target.value })}
-          required
-          className="w-16 px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-        />
+        <input placeholder="Host" value={form.host} onChange={e => setForm({ ...form, host: e.target.value })} required
+          className="flex-1 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+        <input placeholder="Port" value={form.port} onChange={e => setForm({ ...form, port: e.target.value })} required
+          className="w-16 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
       </div>
-      <input
-        placeholder="User"
-        value={form.user}
-        onChange={e => setForm({ ...form, user: e.target.value })}
-        required
-        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-      />
-      <input
-        placeholder="Password"
-        type="password"
-        value={form.password}
-        onChange={e => setForm({ ...form, password: e.target.value })}
-        required
-        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-      />
-      <input
-        placeholder="Database"
-        value={form.database}
-        onChange={e => setForm({ ...form, database: e.target.value })}
-        required
-        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-      />
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      <input placeholder="User" value={form.user} onChange={e => setForm({ ...form, user: e.target.value })} required
+        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+      <input placeholder="Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required
+        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+      <input placeholder="Database" value={form.database} onChange={e => setForm({ ...form, database: e.target.value })} required
+        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+      {error && <p className="text-xs text-red-500">{error}</p>}
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 rounded text-sm text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading}
+          className="flex-1 px-3 py-1.5 rounded-md text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{ background: 'var(--accent)' }}>
           {loading ? 'Connecting...' : 'Connect'}
         </button>
-        <button
-          type="button"
-          onClick={() => setIsOpen(false)}
-          className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-sm text-white"
-        >
+        <button type="button" onClick={() => setIsOpen(false)}
+          className="px-3 py-1.5 rounded-md text-sm border transition-opacity hover:opacity-70"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
           Cancel
         </button>
       </div>

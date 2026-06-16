@@ -16,68 +16,63 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`${isUser ? 'max-w-[70%]' : 'max-w-[90%] w-full'}`}>
-        <div className={`rounded-lg px-4 py-3 ${
-          isUser
-            ? 'bg-primary-600 text-white'
-            : 'bg-slate-700 text-slate-100'
-        }`}>
-          <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-5`}>
+      <div className={`${isUser ? 'max-w-[75%]' : 'max-w-full w-full'}`}>
+        <div
+          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser ? 'rounded-tr-md' : ''}`}
+          style={isUser
+            ? { background: 'var(--user-bubble)', color: 'var(--user-text)' }
+            : { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+          }
+        >
+          <div className="whitespace-pre-wrap">{message.content}</div>
         </div>
 
-        {/* SQL display with save button */}
         {message.sql && !isUser && (
-          <div className="relative">
+          <div className="relative mt-2.5">
             <SqlHighlight sql={message.sql} />
             <button
               onClick={() => setShowSaveDialog(true)}
-              className="absolute top-2 right-2 p-1 text-slate-500 hover:text-yellow-400 transition-colors"
+              className="absolute top-3 right-3 p-1.5 rounded-md transition-opacity opacity-40 hover:opacity-100"
+              style={{ color: 'var(--text-muted)' }}
               title="Save to favorites"
             >
-              ★
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
             </button>
           </div>
         )}
 
-        {/* Safety report */}
-        {message.safetyReport && !isUser && (
-          <SafetyReportCard report={message.safetyReport} />
+        {message.safetyReport && !isUser && message.safetyReport.riskLevel !== 'low' && (
+          <div className="mt-2.5"><SafetyReportCard report={message.safetyReport} /></div>
         )}
 
-        {/* Chart visualization */}
         {message.chartRecommendation && message.results && message.results.length > 0 && !isUser && (
-          <DataChart data={message.results} recommendation={message.chartRecommendation} />
+          <div className="mt-2.5"><DataChart data={message.results} recommendation={message.chartRecommendation} /></div>
         )}
 
-        {/* Result table */}
         {message.results && message.results.length > 0 && !isUser && (
-          <ResultTable results={message.results} />
+          <div className="mt-2.5"><ResultTable results={message.results} /></div>
         )}
 
-        {/* Export buttons */}
         {message.results && message.results.length > 0 && !isUser && (
-          <ExportButtons results={message.results} sql={message.sql} safetyReport={message.safetyReport} />
+          <div className="mt-2"><ExportButtons results={message.results} sql={message.sql} safetyReport={message.safetyReport} /></div>
         )}
 
-        {/* Metadata */}
         {!isUser && (message.executionTimeMs || message.resultCount !== undefined) && (
-          <div className="text-xs text-slate-500 mt-1 px-1 flex gap-3">
+          <div className="flex items-center gap-3 mt-2 text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {message.executionTimeMs && <span>{message.executionTimeMs}ms</span>}
             {message.resultCount !== undefined && <span>{message.resultCount} rows</span>}
             {message.safetyReport && (
-              <span className={
-                message.safetyReport.riskLevel === 'low' ? 'text-green-500' :
-                message.safetyReport.riskLevel === 'medium' ? 'text-yellow-500' : 'text-red-500'
-              }>
-                Risk: {message.safetyReport.riskLevel}
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                {message.safetyReport.riskLevel.toUpperCase()}
               </span>
             )}
           </div>
         )}
       </div>
 
-      {/* Save favorite dialog */}
       {showSaveDialog && message.sql && (
         <SaveFavoriteDialog sql={message.sql} onClose={() => setShowSaveDialog(false)} />
       )}

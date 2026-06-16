@@ -18,7 +18,26 @@
       "Bash(git commit -m ' *)",
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(git push *)",
+      "Bash(git config *)",
+      "Bash(git filter-branch -f --env-filter ' *)",
+      "Bash(git stash *)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --env-filter ' *)",
+      "Bash(npx vite *)",
+      "Bash(cp ../.env.example .env)",
+      "Bash(npx tsx *)",
+      "Bash(docker-compose up *)",
+      "Bash(docker compose *)",
+      "Bash(docker --version)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s -X POST http://localhost:3001/api/chat -H 'Content-Type: application/json' -d '{\"sessionId\":\"test-1\",\"connectionId\":\"default\",\"message\":\"What are the top 5 products by price?\",\"database\":\"demo\"}')",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 30732 //F)",
+      "Bash(taskkill //PID 30756 //F)",
+      "WebSearch",
+      "WebFetch(domain:www.assistant-ui.com)"
     ]
   }
 }

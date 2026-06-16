@@ -2,14 +2,14 @@ import { LLMProvider, LLMProviderConfig } from './types.js';
 import { OpenAIProvider } from './openai-provider.js';
 import { ClaudeProvider } from './claude-provider.js';
 
-export { LLMProvider, LLMMessage, LLMOptions, LLMResponse } from './types.js';
+export type { LLMProvider, LLMMessage, LLMOptions, LLMResponse, LLMProviderConfig } from './types.js';
 
 let providerInstance: LLMProvider | null = null;
 
 export function createLLMProvider(config: LLMProviderConfig): LLMProvider {
   switch (config.provider) {
     case 'openai':
-      return new OpenAIProvider(config.openai.apiKey, config.openai.model);
+      return new OpenAIProvider(config.openai.apiKey, config.openai.model, config.openai.baseURL);
     case 'claude':
       return new ClaudeProvider(config.claude.apiKey, config.claude.model);
     default:

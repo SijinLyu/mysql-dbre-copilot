@@ -11,24 +11,22 @@ const KEYWORDS = [
   'AS', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MAX', 'MIN',
   'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE',
   'CREATE', 'ALTER', 'DROP', 'TABLE', 'INDEX', 'WITH', 'UNION', 'ALL',
+  'SHOW', 'TABLES', 'DESCRIBE', 'EXPLAIN',
 ];
 
 export const SqlHighlight: React.FC<SqlHighlightProps> = ({ sql }) => {
   const highlightSql = (text: string) => {
     const parts: React.ReactNode[] = [];
-    const regex = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'gi');
+    const tempRegex = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'gi');
     let lastIndex = 0;
     let match;
 
-    const tempRegex = new RegExp(regex.source, 'gi');
     while ((match = tempRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(
-          <span key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>
-        );
+        parts.push(<span key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>);
       }
       parts.push(
-        <span key={`k-${match.index}`} className="text-blue-400 font-medium">
+        <span key={`k-${match.index}`} style={{ color: 'var(--accent)', fontWeight: 500 }}>
           {match[0].toUpperCase()}
         </span>
       );
@@ -43,8 +41,14 @@ export const SqlHighlight: React.FC<SqlHighlightProps> = ({ sql }) => {
   };
 
   return (
-    <div className="bg-slate-900 rounded-lg p-3 my-2 border border-slate-700 overflow-x-auto">
-      <pre className="text-sm font-mono whitespace-pre-wrap text-slate-200">
+    <div className="rounded-xl p-3.5 border overflow-x-auto" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+      <div className="flex items-center gap-1.5 mb-2 pb-2 border-b" style={{ borderColor: 'var(--border)' }}>
+        <div className="w-2 h-2 rounded-full" style={{ background: '#ff5f57' }}></div>
+        <div className="w-2 h-2 rounded-full" style={{ background: '#febc2e' }}></div>
+        <div className="w-2 h-2 rounded-full" style={{ background: '#28c840' }}></div>
+        <span className="text-[10px] ml-2 font-mono" style={{ color: 'var(--text-muted)' }}>SQL</span>
+      </div>
+      <pre className="text-[13px] font-mono whitespace-pre-wrap leading-relaxed" style={{ color: 'var(--text-primary)' }}>
         {highlightSql(sql)}
       </pre>
     </div>

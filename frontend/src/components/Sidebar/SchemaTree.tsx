@@ -10,9 +10,7 @@ export const SchemaTree: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (activeConnectionId && activeDatabase) {
-      loadSchema();
-    }
+    if (activeConnectionId && activeDatabase) loadSchema();
   }, [activeConnectionId, activeDatabase]);
 
   const loadSchema = async () => {
@@ -38,33 +36,34 @@ export const SchemaTree: React.FC = () => {
   if (!activeConnectionId) return null;
 
   return (
-    <div className="mt-4">
-      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-4">
+    <div className="mt-2">
+      <h3 className="text-[11px] font-semibold uppercase tracking-wider mb-2 px-1" style={{ color: 'var(--text-muted)' }}>
         Schema
       </h3>
       {loading ? (
-        <p className="text-xs text-slate-500 px-4">Loading...</p>
+        <p className="text-xs px-1" style={{ color: 'var(--text-muted)' }}>Loading...</p>
       ) : tables.length === 0 ? (
-        <p className="text-xs text-slate-500 px-4">No tables found</p>
+        <p className="text-xs px-1" style={{ color: 'var(--text-muted)' }}>No tables found</p>
       ) : (
         <ul className="space-y-0.5">
           {tables.map(table => (
             <li key={table.name}>
               <button
                 onClick={() => toggleTable(table.name)}
-                className="w-full px-4 py-1.5 text-left text-sm text-slate-300 hover:bg-slate-700/50 flex items-center gap-2"
+                className="w-full px-2 py-1.5 text-left text-sm rounded-md flex items-center gap-2 transition-opacity hover:opacity-70"
+                style={{ color: 'var(--text-primary)' }}
               >
-                <span className="text-xs text-slate-500">{expanded.has(table.name) ? '▼' : '▶'}</span>
-                <span>{table.name}</span>
-                <span className="text-xs text-slate-600 ml-auto">~{table.rowEstimate}</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{expanded.has(table.name) ? '▼' : '▶'}</span>
+                <span className="flex-1 truncate">{table.name}</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>~{table.rowEstimate}</span>
               </button>
               {expanded.has(table.name) && (
-                <ul className="pl-8 py-1">
+                <ul className="pl-6 py-1">
                   {table.columns.map(col => (
-                    <li key={col.name} className="text-xs text-slate-500 py-0.5 flex items-center gap-2">
-                      {col.isPrimaryKey && <span className="text-yellow-500">🔑</span>}
-                      <span className="text-slate-400">{col.name}</span>
-                      <span className="text-slate-600">{col.type}</span>
+                    <li key={col.name} className="text-[11px] py-0.5 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                      {col.isPrimaryKey && <span style={{ color: '#eab308' }}>🔑</span>}
+                      <span>{col.name}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{col.type}</span>
                     </li>
                   ))}
                 </ul>

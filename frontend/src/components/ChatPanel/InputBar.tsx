@@ -32,37 +32,44 @@ export const InputBar: React.FC<InputBarProps> = ({ onSend, disabled, suggestion
   }, [input]);
 
   return (
-    <div className="border-t border-slate-700 p-4 bg-slate-800">
+    <div className="p-4 border-t" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
       {suggestions && suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-3 max-w-3xl mx-auto">
           {suggestions.map((s, i) => (
             <button
               key={i}
               onClick={() => onSend(s)}
-              className="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-full text-slate-300 transition-colors"
+              className="text-xs px-3 py-1.5 rounded-full border transition-all hover:opacity-80"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'var(--accent-soft)' }}
             >
               {s}
             </button>
           ))}
         </div>
       )}
-      <div className="flex gap-3 items-end">
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask a question about your database..."
-          disabled={disabled}
-          rows={1}
-          className="flex-1 resize-none bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary-500 disabled:opacity-50"
-        />
+      <div className="flex gap-2 items-end max-w-3xl mx-auto">
+        <div className="flex-1 rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-input)', borderColor: 'var(--border)' }}>
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask a question about your database..."
+            disabled={disabled}
+            rows={1}
+            className="w-full resize-none px-4 py-3 text-sm bg-transparent outline-none disabled:opacity-50 placeholder:opacity-50"
+            style={{ color: 'var(--text-primary)' }}
+          />
+        </div>
         <button
           onClick={handleSubmit}
           disabled={disabled || !input.trim()}
-          className="px-4 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg text-white font-medium text-sm transition-colors"
+          className="p-3 rounded-xl text-white transition-all disabled:opacity-30"
+          style={{ background: 'var(--accent)' }}
         >
-          Send
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>
