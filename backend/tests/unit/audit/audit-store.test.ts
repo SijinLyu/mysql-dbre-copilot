@@ -8,9 +8,10 @@ describe('AuditStore', () => {
   let store: AuditStore;
   const testDbPath = path.join(process.cwd(), 'test-audit.db');
 
-  beforeEach(() => {
+  beforeEach(async () => {
     if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
     store = new AuditStore(testDbPath);
+    await store.ensureReady();
   });
 
   afterEach(() => {

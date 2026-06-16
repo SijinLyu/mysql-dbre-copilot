@@ -72,12 +72,12 @@ export class IndexAdvisor {
 
   private extractOrderByColumns(sql: string, table: string): string[] {
     const columns: string[] = [];
-    const orderMatch = sql.match(/ORDER\s+BY\s+([\s\S]*?)(?:LIMIT|$)/i);
+    const orderMatch = sql.match(/ORDER\s+BY\s+([\s\S]+?)(?:\s+LIMIT\s|\s*$)/i);
     if (!orderMatch) return columns;
 
     const parts = orderMatch[1].split(',');
     for (const part of parts) {
-      const col = part.trim().replace(/\s+(ASC|DESC)/i, '').replace(/^\w+\./, '');
+      const col = part.trim().replace(/\s+(ASC|DESC)\s*/i, '').replace(/^\w+\./, '').trim();
       if (col && !columns.includes(col)) {
         columns.push(col);
       }
