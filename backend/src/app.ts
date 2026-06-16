@@ -1,5 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import mysql from 'mysql2/promise';
+import { config } from './config.js';
+import { createApiRouter, errorHandler, requestLogger } from './api/index.js';
+import { ChatService } from './chat/index.js';
+import { SchemaCache } from './schema/index.js';
+import { getLLMProvider } from './llm/index.js';
 import { logger } from './utils/logger.js';
 
 export function createApp() {
@@ -14,19 +20,45 @@ export function createApp() {
   }));
 
   app.use(express.json({ limit: '10mb' }));
+  app.use(requestLogger);
 
+  // Health check
   app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       version: '1.0.0',
+      llmProvider: config.llm.provider,
       timestamp: new Date().toISOString(),
     });
   });
 
-  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    logger.error('Unhandled error', { error: err.message, stack: err.stack });
-    res.status(500).json({ error: 'Internal server error' });
+  // Initialize services
+  const schemaCache = new SchemaCache();
+
+  // Create default MySQL pool
+  const pool = mysql.createPool({
+    host: config.mysql.host,
+    port: config.mysql.port,
+    user: config.mysql.user,
+    password: config.mysql.password,
+    database: config.mysql.database,
+    waitForConnections: true,
+    connectionLimit: 10,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
   });
+
+  // Create LLM provider
+  const llmProvider = getLLMProvider(config.llm);
+
+  // Create chat service
+  const chatService = new ChatService(llmProvider, pool, schemaCache);
+
+  // Mount API routes
+  app.use('/api', createApiRouter(chatService, schemaCache));
+
+  // Error handler
+  app.use(errorHandler);
 
   return app;
 }
