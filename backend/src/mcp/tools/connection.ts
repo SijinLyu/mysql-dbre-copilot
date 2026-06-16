@@ -1,87 +1,81 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { DatabaseConnectionManager } from "../database.js";
 
-/**
- * 连接管理工具定义
- */
 export const connectionTools: Tool[] = [
   {
     name: "add_connection",
-    description: "添加新的数据库连接",
+    description: "Add a MySQL database connection.",
     inputSchema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description: "连接标识符（唯一ID，例如：prod, test, dev）"
+          description: "Unique connection id, for example prod, test, or dev.",
         },
         host: {
           type: "string",
-          description: "数据库主机地址"
+          description: "Database host.",
         },
         port: {
           type: "number",
-          description: "数据库端口号",
-          default: 3306
+          description: "Database port.",
+          default: 3306,
         },
         user: {
           type: "string",
-          description: "数据库用户名"
+          description: "Database username.",
         },
         password: {
           type: "string",
-          description: "数据库密码"
+          description: "Database password.",
         },
         database: {
           type: "string",
-          description: "数据库名称"
-        }
+          description: "Database name.",
+        },
       },
-      required: ["id", "host", "user", "password", "database"]
-    }
+      required: ["id", "host", "user", "password", "database"],
+    },
   },
   {
     name: "list_connections",
-    description: "列出所有数据库连接及其ID。如果需要知道有效的connection_id，请调用此工具查看。返回信息包括：连接ID、主机、端口、数据库名、当前活跃状态等。",
+    description: "List all configured database connections and show the active connection id.",
     inputSchema: {
       type: "object",
       properties: {},
-      required: []
-    }
+      required: [],
+    },
   },
   {
     name: "select_database",
-    description: "选择活跃的数据库连接（后续SQL将在此数据库上执行）",
+    description: "Select the active database connection used by later SQL tools.",
     inputSchema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description: "要选择的连接ID"
-        }
+          description: "Connection id to select.",
+        },
       },
-      required: ["id"]
-    }
+      required: ["id"],
+    },
   },
   {
     name: "remove_connection",
-    description: "移除指定的数据库连接",
+    description: "Remove a database connection.",
     inputSchema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description: "要移除的连接ID"
-        }
+          description: "Connection id to remove.",
+        },
       },
-      required: ["id"]
-    }
-  }
+      required: ["id"],
+    },
+  },
 ];
 
-/**
- * 连接管理工具处理器
- */
 export async function handleConnectionTool(
   name: string,
   args: any,
@@ -90,68 +84,68 @@ export async function handleConnectionTool(
   switch (name) {
     case "add_connection": {
       const { id, host, port = 3306, user, password, database } = args;
-      
+
       await dbManager.addConnection({
         id,
         host,
         port,
         user,
         password,
-        database
+        database,
       });
 
       return {
         content: [
           {
             type: "text",
-            text: `✅ 数据库连接已添加\n` +
-                  `🆔 ID: ${id}\n` +
-                  `🖥️  主机: ${host}:${port}\n` +
-                  `📂 数据库: ${database}\n` +
-                  `👤 用户: ${user}`
-          }
-        ]
+            text:
+              `Database connection added\n` +
+              `ID: ${id}\n` +
+              `Host: ${host}:${port}\n` +
+              `Database: ${database}\n` +
+              `User: ${user}`,
+          },
+        ],
       };
     }
 
     case "list_connections": {
       const connections = dbManager.listConnections();
-      
+
       if (connections.length === 0) {
         return {
           content: [
             {
               type: "text",
-              text: "⚠️  当前没有任何数据库连接\n\n💡 使用 add_connection 工具添加连接"
-            }
-          ]
+              text: "No database connections are configured. Use add_connection to add one.",
+            },
+          ],
         };
       }
 
-      const activeId = dbManager.getActiveConnectionId();
-      let text = `📊 当前数据库连接列表 (共 ${connections.length} 个)\n\n`;
-      
+      let text = `Database connections (${connections.length})\n\n`;
+
       connections.forEach((conn, index) => {
-        const prefix = conn.isActive ? "🟢" : "⚪";
-        text += `${prefix} [${index + 1}] ${conn.id}\n`;
-        text += `   └─ ${conn.host}:${conn.port}/${conn.database}\n`;
-        text += `   └─ 用户: ${conn.user}\n`;
+        const marker = conn.isActive ? "*" : "-";
+        text += `${marker} [${index + 1}] ${conn.id}\n`;
+        text += `  ${conn.host}:${conn.port}/${conn.database}\n`;
+        text += `  User: ${conn.user}\n`;
         if (conn.isActive) {
-          text += `   └─ ✅ 当前活跃连接\n`;
+          text += `  Active connection\n`;
         }
         text += `\n`;
       });
 
-      text += `\n💡 使用 select_database 切换活跃连接`;
+      text += "Use select_database to switch the active connection.";
 
       return {
-        content: [{ type: "text", text }]
+        content: [{ type: "text", text }],
       };
     }
 
     case "select_database": {
       const { id } = args;
-      
+
       dbManager.selectDatabase(id);
       const connections = dbManager.listConnections();
       const selected = connections.find(c => c.id === id);
@@ -160,34 +154,33 @@ export async function handleConnectionTool(
         content: [
           {
             type: "text",
-            text: `✅ 已选择数据库\n` +
-                  `🆔 ID: ${id}\n` +
-                  `📂 数据库: ${selected?.database}\n` +
-                  `🖥️  主机: ${selected?.host}:${selected?.port}\n\n` +
-                  `✨ 后续所有 SQL 操作将在此数据库上执行`
-          }
-        ]
+            text:
+              `Database selected\n` +
+              `ID: ${id}\n` +
+              `Database: ${selected?.database}\n` +
+              `Host: ${selected?.host}:${selected?.port}\n\n` +
+              `Later SQL tools will use this connection.`,
+          },
+        ],
       };
     }
 
     case "remove_connection": {
       const { id } = args;
-      
+
       await dbManager.removeConnection(id);
 
       return {
         content: [
           {
             type: "text",
-            text: `✅ 连接已移除: ${id}\n` +
-                  `📊 剩余连接数: ${dbManager.listConnections().length}`
-          }
-        ]
+            text: `Connection removed: ${id}\nRemaining connections: ${dbManager.listConnections().length}`,
+          },
+        ],
       };
     }
 
     default:
-      throw new Error(`未知的连接工具: ${name}`);
+      throw new Error(`Unknown connection tool: ${name}`);
   }
 }
-
