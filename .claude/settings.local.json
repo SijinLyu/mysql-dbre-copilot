@@ -14,7 +14,8 @@
       "Bash(cp src/tools/index.ts backend/src/mcp/tools/index.ts)",
       "Bash(cp src/tools/connection.ts backend/src/mcp/tools/connection.ts)",
       "Bash(cp src/tools/query.ts backend/src/mcp/tools/query.ts)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
