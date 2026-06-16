@@ -5,6 +5,7 @@ import { SchemaIntrospector, SchemaCache } from '../schema/index.js';
 import { ConversationManager, ConversationEntry } from './conversation-manager.js';
 import { SqlGenerator } from './sql-generator.js';
 import { ResultSummarizer, ChartRecommendation } from './result-summarizer.js';
+import { SafetyPipeline, SafetyReport } from '../safety/index.js';
 import { logger } from '../utils/logger.js';
 
 export interface ChatRequest {
@@ -24,7 +25,7 @@ export interface ChatResponse {
   executionTimeMs?: number;
   chartRecommendation?: ChartRecommendation;
   followUpSuggestions: string[];
-  safetyReport?: any;
+  safetyReport?: SafetyReport;
   timestamp: Date;
 }
 
@@ -34,6 +35,7 @@ export class ChatService {
   private resultSummarizer: ResultSummarizer;
   private schemaIntrospector: SchemaIntrospector;
   private schemaCache: SchemaCache;
+  private safetyPipeline: SafetyPipeline;
   private pool: Pool;
 
   constructor(
@@ -46,6 +48,7 @@ export class ChatService {
     this.resultSummarizer = new ResultSummarizer(llm);
     this.schemaIntrospector = new SchemaIntrospector(pool);
     this.schemaCache = schemaCache || new SchemaCache();
+    this.safetyPipeline = new SafetyPipeline(pool);
     this.pool = pool;
   }
 
@@ -53,7 +56,6 @@ export class ChatService {
     const { sessionId, message, database } = request;
     const startTime = Date.now();
 
-    // Record user message
     this.conversationManager.addMessage(sessionId, {
       id: uuidv4(),
       role: 'user',
@@ -69,15 +71,50 @@ export class ChatService {
         this.schemaCache.set(request.connectionId, database, schema);
       }
       const schemaContext = this.schemaIntrospector.formatForLLM(schema);
-
-      // Get conversation history for context
       const historyContext = this.conversationManager.formatHistoryForPrompt(sessionId);
 
       // Generate SQL
       const sql = await this.sqlGenerator.generate(message, schemaContext, historyContext);
       logger.info('SQL generated', { sessionId, sql });
 
-      // Execute query
+      // Safety analysis
+      const safetyReport = await this.safetyPipeline.analyze(sql);
+      logger.info('Safety analysis complete', {
+        sessionId,
+        riskLevel: safetyReport.riskLevel,
+        riskScore: safetyReport.riskScore,
+        recommendation: safetyReport.recommendation,
+      });
+
+      // If safety rejects, return without executing
+      if (!safetyReport.executionAllowed) {
+        const rejectMessage = this.buildRejectionMessage(sql, safetyReport);
+
+        const responseEntry: ConversationEntry = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: rejectMessage,
+          timestamp: new Date(),
+          metadata: { sql },
+        };
+        this.conversationManager.addMessage(sessionId, responseEntry);
+
+        return {
+          id: responseEntry.id,
+          sessionId,
+          message: rejectMessage,
+          sql,
+          safetyReport,
+          followUpSuggestions: [
+            'Try rephrasing with more specific filters',
+            'Add a LIMIT clause to reduce risk',
+            'Ask for read-only data instead',
+          ],
+          timestamp: new Date(),
+        };
+      }
+
+      // Execute query (safety passed)
       const [rows] = await this.pool.query(sql);
       const results = rows as any[];
       const executionTimeMs = Date.now() - startTime;
@@ -112,6 +149,7 @@ export class ChatService {
         resultCount: results.length,
         executionTimeMs,
         chartRecommendation,
+        safetyReport,
         followUpSuggestions,
         timestamp: new Date(),
       };
@@ -135,6 +173,26 @@ export class ChatService {
         timestamp: new Date(),
       };
     }
+  }
+
+  private buildRejectionMessage(sql: string, report: SafetyReport): string {
+    let msg = `I generated this SQL but it was blocked by the safety review (Risk: ${report.riskLevel.toUpperCase()}, Score: ${report.riskScore}/100):\n\n`;
+    msg += `\`\`\`sql\n${sql}\n\`\`\`\n\n`;
+    msg += `**Issues found:**\n`;
+
+    for (const check of report.checks.filter(c => !c.passed)) {
+      const icon = check.severity === 'error' ? '🔴' : '🟡';
+      msg += `${icon} ${check.message}\n`;
+    }
+
+    if (report.suggestions.length > 0) {
+      msg += `\n**Suggestions:**\n`;
+      for (const suggestion of report.suggestions.slice(0, 5)) {
+        msg += `• ${suggestion}\n`;
+      }
+    }
+
+    return msg;
   }
 
   getHistory(sessionId: string) {
