@@ -37,9 +37,14 @@ describe('SqlClassifier', () => {
       expect(classifier.classify('TRUNCATE TABLE logs')).toBe('DDL');
     });
 
-    it('classifies unknown as OTHER', () => {
-      expect(classifier.classify('EXPLAIN SELECT * FROM users')).toBe('OTHER');
-      expect(classifier.classify('SHOW TABLES')).toBe('OTHER');
+    it('classifies SHOW/DESCRIBE/EXPLAIN as SELECT (read-only)', () => {
+      expect(classifier.classify('EXPLAIN SELECT * FROM users')).toBe('SELECT');
+      expect(classifier.classify('SHOW TABLES')).toBe('SELECT');
+      expect(classifier.classify('DESCRIBE users')).toBe('SELECT');
+    });
+
+    it('classifies stored procedure calls as OTHER', () => {
+      expect(classifier.classify('CALL my_proc()')).toBe('OTHER');
     });
   });
 

@@ -37,7 +37,8 @@
       "Bash(taskkill //PID 30732 //F)",
       "Bash(taskkill //PID 30756 //F)",
       "WebSearch",
-      "WebFetch(domain:www.assistant-ui.com)"
+      "WebFetch(domain:www.assistant-ui.com)",
+      "Bash(xargs wc -l)"
     ]
   }
 }
