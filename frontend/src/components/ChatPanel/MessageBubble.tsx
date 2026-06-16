@@ -5,6 +5,7 @@ import { ResultTable } from '../ResultTable/ResultTable';
 import { SafetyReportCard } from '../Safety/SafetyReport';
 import { DataChart } from '../Charts/DataChart';
 import { SaveFavoriteDialog } from '../Favorites/SaveFavoriteDialog';
+import { ExportButtons } from '../Export/ExportButtons';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -52,6 +53,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         {/* Result table */}
         {message.results && message.results.length > 0 && !isUser && (
           <ResultTable results={message.results} />
+        )}
+
+        {/* Export buttons */}
+        {message.results && message.results.length > 0 && !isUser && (
+          <ExportButtons results={message.results} sql={message.sql} safetyReport={message.safetyReport} />
         )}
 
         {/* Metadata */}
