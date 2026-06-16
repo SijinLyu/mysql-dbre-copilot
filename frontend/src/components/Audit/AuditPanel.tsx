@@ -54,6 +54,36 @@ export const AuditPanel: React.FC = () => {
     }
   };
 
+  const exportCsv = () => {
+    if (entries.length === 0) return;
+    const headers = ['Timestamp', 'Risk Level', 'Score', 'User Message', 'Generated SQL', 'Executed', 'Execution Time (ms)', 'Row Count', 'Error'];
+    const escapeField = (val: string) => {
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+    const rows = entries.map(e => [
+      e.timestamp,
+      e.riskLevel,
+      String(e.riskScore),
+      escapeField(e.userMessage),
+      escapeField(e.generatedSql),
+      e.executed ? 'yes' : 'no',
+      e.executionTimeMs != null ? String(e.executionTimeMs) : '',
+      e.rowCount != null ? String(e.rowCount) : '',
+      e.error ? escapeField(e.error) : '',
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [riskFilter]);
 
   return (
@@ -65,13 +95,28 @@ export const AuditPanel: React.FC = () => {
             Every chat-to-SQL interaction with risk scoring and execution metadata.
           </p>
         </div>
-        <button
-          onClick={load}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-          style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
-        >
-          {loading ? 'Refreshing…' : 'Refresh'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={exportCsv}
+            disabled={entries.length === 0}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all border"
+            style={{
+              borderColor: 'var(--border)',
+              color: entries.length === 0 ? 'var(--text-muted)' : 'var(--text-secondary)',
+              background: 'transparent',
+              opacity: entries.length === 0 ? 0.5 : 1,
+            }}
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={load}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+            style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+          >
+            {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {stats && (

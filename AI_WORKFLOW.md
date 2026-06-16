@@ -37,3 +37,47 @@ I wanted to demonstrate AI-native system design that combines multiple concerns:
 - Schema cache with TTL avoids repeated INFORMATION_SCHEMA queries
 - Audit uses SQLite (independent of target database)
 - Frontend uses Zustand (minimal state management for focused UI)
+
+## Diagnostics Module (v2)
+
+The diagnostics module provides advanced DBA-oriented analysis tools accessible via both REST API and the frontend panel system. It goes beyond chat-based SQL generation to offer automated database health checks.
+
+### REST API: `/api/diagnostics`
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/diagnostics/index-redundancy/:connId/:db` | GET | Scans INFORMATION_SCHEMA.STATISTICS to detect redundant, duplicate, and potentially unused indexes |
+| `/diagnostics/slow-log` | POST | Parses MySQL slow query log text, extracts statistics, groups by fingerprint |
+| `/diagnostics/pii-scan` | POST | Scans SQL and schema for personally identifiable information patterns |
+| `/diagnostics/plan` | POST | Runs EXPLAIN on a query and returns the execution plan analysis |
+
+### Frontend Panels (5-Tab Layout)
+
+The frontend uses a top-level tab navigation (`activeView` in Zustand store) to switch between:
+
+1. **Chat** — the original NL-to-SQL interface with follow-up suggestions and chart recommendations
+2. **Audit Log** — displays all historical chat-to-SQL interactions with risk scoring, filterable by risk level, with CSV export capability
+3. **Index Redundancy** — one-click analysis of the active database to find prefix-redundant indexes, exact duplicates, and potentially unused indexes with DROP statements
+4. **Slow Query Analysis** — paste or upload a MySQL slow query log, see top-N slowest queries, fingerprint grouping, and user/database breakdown
+5. **Saved Queries (Favorites)** — starred queries from chat sessions with copy-to-clipboard
+
+### Prompt Usage in Diagnostics
+
+- **Index Redundancy**: Uses pure SQL against `INFORMATION_SCHEMA.STATISTICS` — no LLM involved. Logic detects: (a) indexes where one is a prefix of another on the same table, (b) indexes with identical column lists, (c) indexes with zero cardinality suggesting disuse.
+- **Slow Query Log**: Parsed with regex pattern matching against MySQL slow log format. Statistics computed in-memory: total/avg/max query time, rows examined, per-user and per-database grouping. Fingerprinting normalizes literal values to `?` for grouping.
+- **PII Scan**: Pattern matching against common PII column names (email, phone, ssn, etc.) and SQL content analysis. No LLM call — purely rule-based for speed and determinism.
+- **Execution Plan**: Runs `EXPLAIN` via the active MySQL connection and structures the output for frontend display.
+
+### CSV Export (Audit Panel)
+
+The Audit panel includes a "Export CSV" button that:
+- Exports all currently loaded/filtered audit entries
+- Properly escapes fields containing commas, quotes, or newlines
+- Generates a date-stamped filename (`audit-log-YYYY-MM-DD.csv`)
+- Uses Blob + object URL for client-side download (no server round-trip)
+
+## Testing Strategy
+
+- **Backend**: Jest with 16 test suites / 148 tests covering routes, services, safety pipeline, diagnostics engine, and integration
+- **Frontend**: Vitest + React Testing Library with 8 test suites / 99 tests covering Zustand store logic, API service layer, CSV export utilities, and all 5 panel components
+- **Total**: 24 suites / 247 tests, all passing
