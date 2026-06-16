@@ -3,7 +3,7 @@ import { useStore } from '../../store';
 import { api } from '../../services/api';
 
 export const ConnectionForm: React.FC = () => {
-  const { addConnection, setActiveConnection } = useStore();
+  const { addConnection, setActiveConnection, addToHistory } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState({
     id: '', host: 'localhost', port: '3306', user: 'root', password: '', database: '',
@@ -29,6 +29,11 @@ export const ConnectionForm: React.FC = () => {
       addConnection({
         id: form.id, host: form.host, port: parseInt(form.port, 10),
         user: form.user, database: form.database,
+      });
+      addToHistory({
+        id: form.id, host: form.host, port: parseInt(form.port, 10),
+        user: form.user, password: form.password, database: form.database,
+        lastUsedAt: new Date().toISOString(),
       });
       setActiveConnection(form.id, form.database);
       setIsOpen(false);
@@ -61,12 +66,12 @@ export const ConnectionForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="p-3 rounded-lg border space-y-2" style={{ background: 'var(--bg-base)', borderColor: 'var(--border)' }}>
       <input placeholder="Connection ID (e.g., prod)" value={form.id} onChange={e => setForm({ ...form, id: e.target.value })} required
-        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none focus:border-current" style={inputStyle} />
+        className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
       <div className="flex gap-2">
         <input placeholder="Host" value={form.host} onChange={e => setForm({ ...form, host: e.target.value })} required
-          className="flex-1 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+          className="flex-1 min-w-0 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
         <input placeholder="Port" value={form.port} onChange={e => setForm({ ...form, port: e.target.value })} required
-          className="w-16 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
+          className="w-20 flex-shrink-0 px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
       </div>
       <input placeholder="User" value={form.user} onChange={e => setForm({ ...form, user: e.target.value })} required
         className="w-full px-2.5 py-1.5 border rounded-md text-sm outline-none" style={inputStyle} />
