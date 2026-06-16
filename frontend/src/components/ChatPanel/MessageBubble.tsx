@@ -3,6 +3,7 @@ import { ChatMessage } from '../../types';
 import { SqlHighlight } from '../SqlDisplay/SqlHighlight';
 import { ResultTable } from '../ResultTable/ResultTable';
 import { SafetyReportCard } from '../Safety/SafetyReport';
+import { DataChart } from '../Charts/DataChart';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -30,6 +31,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         {/* Safety report */}
         {message.safetyReport && !isUser && (
           <SafetyReportCard report={message.safetyReport} />
+        )}
+
+        {/* Chart visualization */}
+        {message.chartRecommendation && message.results && message.results.length > 0 && !isUser && (
+          <DataChart data={message.results} recommendation={message.chartRecommendation} />
         )}
 
         {/* Result table */}
