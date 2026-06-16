@@ -5,6 +5,7 @@ import { config } from './config.js';
 import { createApiRouter, errorHandler, requestLogger } from './api/index.js';
 import { ChatService } from './chat/index.js';
 import { SchemaCache } from './schema/index.js';
+import { AuditLogger } from './audit/index.js';
 import { getLLMProvider } from './llm/index.js';
 import { logger } from './utils/logger.js';
 
@@ -34,6 +35,7 @@ export function createApp() {
 
   // Initialize services
   const schemaCache = new SchemaCache();
+  const auditLogger = new AuditLogger(config.audit.dbPath);
 
   // Create default MySQL pool
   const pool = mysql.createPool({
@@ -55,10 +57,16 @@ export function createApp() {
   const chatService = new ChatService(llmProvider, pool, schemaCache);
 
   // Mount API routes
-  app.use('/api', createApiRouter(chatService, schemaCache));
+  app.use('/api', createApiRouter(chatService, schemaCache, auditLogger));
 
   // Error handler
   app.use(errorHandler);
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    auditLogger.close();
+    pool.end();
+  });
 
   return app;
 }
