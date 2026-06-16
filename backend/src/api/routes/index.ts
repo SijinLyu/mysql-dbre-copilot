@@ -6,6 +6,7 @@ import { createChatRouter } from './chat.js';
 import { createConnectionsRouter } from './connections.js';
 import { createSchemaRouter } from './schema.js';
 import { createAuditRouter } from './audit.js';
+import { createDiagnosticsRouter } from './diagnostics.js';
 
 export function createApiRouter(
   chatService: ChatService,
@@ -18,6 +19,7 @@ export function createApiRouter(
   router.use('/connections', createConnectionsRouter());
   router.use('/schema', createSchemaRouter(schemaCache));
   router.use('/audit', createAuditRouter(auditLogger));
+  router.use('/diagnostics', createDiagnosticsRouter(schemaCache));
 
   return router;
 }

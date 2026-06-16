@@ -60,4 +60,28 @@ export const api = {
       return request<any>('/audit/stats');
     },
   },
+
+  diagnostics: {
+    indexRedundancy(connectionId: string, database: string) {
+      return request<any>(`/diagnostics/index-redundancy/${connectionId}/${database}`);
+    },
+    parseSlowLog(content: string) {
+      return request<any>('/diagnostics/slow-log', {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+    },
+    piiScan(sql: string) {
+      return request<any>('/diagnostics/pii-scan', {
+        method: 'POST',
+        body: JSON.stringify({ sql }),
+      });
+    },
+    plan(connectionId: string, sql: string) {
+      return request<any>('/diagnostics/plan', {
+        method: 'POST',
+        body: JSON.stringify({ connectionId, sql }),
+      });
+    },
+  },
 };

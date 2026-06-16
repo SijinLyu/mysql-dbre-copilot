@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { ChatMessage, Connection, Favorite } from '../types';
 
 type Theme = 'dark' | 'light';
+export type AppView = 'chat' | 'audit' | 'index-redundancy' | 'slow-query' | 'favorites';
 
 interface ConnectionHistoryEntry {
   id: string;
@@ -52,6 +53,8 @@ interface AppState {
   toggleSidebar: () => void;
   theme: Theme;
   toggleTheme: () => void;
+  activeView: AppView;
+  setActiveView: (view: AppView) => void;
 }
 
 const HISTORY_KEY = 'connection-history';
@@ -154,4 +157,6 @@ export const useStore = create<AppState>((set, get) => ({
     localStorage.setItem('theme', next);
     return { theme: next };
   }),
+  activeView: 'chat',
+  setActiveView: (view) => set({ activeView: view }),
 }));

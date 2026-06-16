@@ -1,15 +1,26 @@
 import React from 'react';
-import { useStore } from '../../store';
+import { useStore, AppView } from '../../store';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
+const TABS: { id: AppView; label: string }[] = [
+  { id: 'chat', label: 'Chat' },
+  { id: 'audit', label: 'Audit' },
+  { id: 'index-redundancy', label: 'Indexes' },
+  { id: 'slow-query', label: 'Slow Log' },
+  { id: 'favorites', label: 'Favorites' },
+];
+
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
-  const { theme, toggleTheme } = useStore();
+  const { theme, toggleTheme, activeView, setActiveView } = useStore();
 
   return (
-    <header className="h-13 flex items-center px-4 justify-between border-b" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
+    <header
+      className="h-13 flex items-center px-4 justify-between border-b"
+      style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
+    >
       <div className="flex items-center gap-3">
         <button onClick={onToggleSidebar} className="p-2 rounded-lg hover:opacity-70 transition-opacity">
           <svg className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,6 +36,27 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>MySQL DBRE Copilot</span>
         </div>
       </div>
+
+      <nav className="flex items-center gap-1">
+        {TABS.map(t => {
+          const active = activeView === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveView(t.id)}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={
+                active
+                  ? { background: 'var(--accent-soft)', color: 'var(--accent)' }
+                  : { background: 'transparent', color: 'var(--text-secondary)' }
+              }
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </nav>
+
       <div className="flex items-center gap-2">
         <button
           onClick={toggleTheme}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useStore } from '../../store';
-import { Favorite } from '../../types';
 
 interface FavoritesPanelProps {
   onUseFavorite: (sql: string) => void;
