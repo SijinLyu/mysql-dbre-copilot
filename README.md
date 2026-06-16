@@ -78,6 +78,33 @@ cd backend && npm test
 cd frontend && npm test
 ```
 
+## Project Structure
+
+```
+mysql-dbre-copilot/
+├── backend/
+│   ├── src/
+│   │   ├── api/          # REST API routes and middleware
+│   │   ├── audit/        # SQLite audit logging
+│   │   ├── chat/         # Chat orchestration (NL→SQL→execute→summarize)
+│   │   ├── llm/          # Multi-provider LLM abstraction
+│   │   ├── mcp/          # MCP server (backward-compatible)
+│   │   ├── optimization/ # Index advisor, query rewriter
+│   │   ├── safety/       # SQL safety pipeline
+│   │   ├── schema/       # Schema introspection + cache
+│   │   └── utils/        # Logger, shared utilities
+│   └── tests/            # Jest unit and integration tests
+├── frontend/
+│   └── src/
+│       ├── components/   # React UI components
+│       ├── services/     # API client
+│       ├── store/        # Zustand state
+│       └── types/        # TypeScript interfaces
+├── init-db/              # Demo database seed SQL
+├── docker-compose.yml    # Full-stack deployment
+└── AI_WORKFLOW.md        # AI development process documentation
+```
+
 ## License
 
 MIT
