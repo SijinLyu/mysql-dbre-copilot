@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatMessage } from '../../types';
 import { SqlHighlight } from '../SqlDisplay/SqlHighlight';
 import { ResultTable } from '../ResultTable/ResultTable';
 import { SafetyReportCard } from '../Safety/SafetyReport';
 import { DataChart } from '../Charts/DataChart';
+import { SaveFavoriteDialog } from '../Favorites/SaveFavoriteDialog';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -11,6 +12,7 @@ interface MessageBubbleProps {
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -23,9 +25,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           <div className="text-sm whitespace-pre-wrap">{message.content}</div>
         </div>
 
-        {/* SQL display */}
+        {/* SQL display with save button */}
         {message.sql && !isUser && (
-          <SqlHighlight sql={message.sql} />
+          <div className="relative">
+            <SqlHighlight sql={message.sql} />
+            <button
+              onClick={() => setShowSaveDialog(true)}
+              className="absolute top-2 right-2 p-1 text-slate-500 hover:text-yellow-400 transition-colors"
+              title="Save to favorites"
+            >
+              ★
+            </button>
+          </div>
         )}
 
         {/* Safety report */}
@@ -59,6 +70,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           </div>
         )}
       </div>
+
+      {/* Save favorite dialog */}
+      {showSaveDialog && message.sql && (
+        <SaveFavoriteDialog sql={message.sql} onClose={() => setShowSaveDialog(false)} />
+      )}
     </div>
   );
 };
