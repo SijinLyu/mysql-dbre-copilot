@@ -27,5 +27,5 @@ export interface LLMProvider {
 export interface LLMProviderConfig {
   provider: 'openai' | 'claude';
   openai: { apiKey: string; model: string; baseURL?: string };
-  claude: { apiKey: string; model: string };
+  claude: { apiKey: string; model: string; baseURL?: string };
 }

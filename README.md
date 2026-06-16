@@ -67,11 +67,12 @@ Copy-Item .env.example .env
 | `PORT` | `3001` | 后端服务端口。 |
 | `NODE_ENV` | `development` | 运行环境。开发时使用 `development`，Docker 镜像内使用 `production`。 |
 | `LLM_PROVIDER` | `openai` | AI 服务商，可选 `openai` 或 `claude`。 |
-| `OPENAI_API_KEY` | `sk-...` | 使用 OpenAI 时必填。 |
-| `OPENAI_MODEL` | `gpt-4o` | OpenAI 模型名称。 |
-| `OPENAI_BASE_URL` | `https://...` | 可选，使用 OpenAI 兼容代理或网关时填写。`.env.example` 未列出，但后端已支持读取。 |
-| `ANTHROPIC_API_KEY` | `sk-ant-...` | 使用 Claude 时必填。 |
-| `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` | Claude 模型名称。 |
+| `OPENAI_API_KEY` | `your-openai-compatible-api-key` | 使用 OpenAI、Groq 或兼容网关时填写。 |
+| `OPENAI_MODEL` | `your-model-name` | 模型名称，例如 `gpt-4o` 或 `llama-3.3-70b-versatile`。 |
+| `OPENAI_BASE_URL` | 空或 `https://...` | 官方 OpenAI 可留空；Groq 或兼容网关填写对应 base URL。 |
+| `ANTHROPIC_API_KEY` | `your-anthropic-api-key` | 使用 Claude 时填写。 |
+| `ANTHROPIC_MODEL` | `your-claude-model-name` | Claude 模型名称。 |
+| `ANTHROPIC_BASE_URL` | 空或 `https://...` | 官方 Anthropic 可留空；Anthropic-compatible 网关填写对应 base URL。 |
 | `MYSQL_HOST` | `localhost` | 本地开发时的 MySQL 主机。Docker Compose 内部会自动使用 `mysql`。 |
 | `MYSQL_PORT` | `3306` | MySQL 端口。 |
 | `MYSQL_USER` | `root` | MySQL 用户名。 |
@@ -81,20 +82,24 @@ Copy-Item .env.example .env
 | `AUDIT_DB_PATH` | `./audit.db` | 本地审计数据库文件路径。Docker 中映射到 `/data/audit.db`。 |
 | `API_KEY` | `your-api-key-here` | 预留安全配置项，当前主要业务接口未强制校验。 |
 
-如果选择 OpenAI，至少需要：
+如果选择 OpenAI-compatible Provider，例如 OpenAI、Groq 或兼容网关，至少需要：
 
 ```env
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-openai-key
-OPENAI_MODEL=gpt-4o
+OPENAI_API_KEY=your-openai-compatible-api-key
+OPENAI_MODEL=your-model-name
+OPENAI_BASE_URL=
 ```
+
+其中，官方 OpenAI 通常可以留空 `OPENAI_BASE_URL`；Groq 或其他兼容网关需要填写对应的 base URL。
 
 如果选择 Claude，至少需要：
 
 ```env
 LLM_PROVIDER=claude
-ANTHROPIC_API_KEY=sk-ant-your-key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+ANTHROPIC_API_KEY=your-anthropic-api-key
+ANTHROPIC_MODEL=your-claude-model-name
+ANTHROPIC_BASE_URL=
 ```
 
 ## 环境搭建步骤
@@ -127,7 +132,9 @@ Copy-Item .env.example .env
 
 ```env
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-openai-key
+OPENAI_API_KEY=your-openai-compatible-api-key
+OPENAI_MODEL=your-model-name
+OPENAI_BASE_URL=
 ```
 
 4. 启动全部服务：
@@ -199,7 +206,9 @@ Copy-Item .env.example .env
 
 ```env
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-openai-key
+OPENAI_API_KEY=your-openai-compatible-api-key
+OPENAI_MODEL=your-model-name
+OPENAI_BASE_URL=
 MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_USER=root
@@ -568,8 +577,9 @@ docker compose up --build
 1. 检查 `.env` 中 `LLM_PROVIDER` 是否为 `openai` 或 `claude`。
 2. 如果使用 OpenAI，确认 `OPENAI_API_KEY` 和 `OPENAI_MODEL` 正确。
 3. 如果使用 Claude，确认 `ANTHROPIC_API_KEY` 和 `ANTHROPIC_MODEL` 正确。
-4. 如果使用代理或兼容网关，补充 `OPENAI_BASE_URL`。
-5. 修改 `.env` 后重启后端或重新执行 `docker compose up --build`。
+4. 如果使用 OpenAI-compatible 代理或网关，补充 `OPENAI_BASE_URL`。
+5. 如果使用 Anthropic-compatible 代理或网关，补充 `ANTHROPIC_BASE_URL`。
+6. 修改 `.env` 后重启后端或重新执行 `docker compose up --build`。
 
 ### 6. 依赖安装失败
 

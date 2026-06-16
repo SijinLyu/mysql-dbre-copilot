@@ -11,7 +11,7 @@ export function createLLMProvider(config: LLMProviderConfig): LLMProvider {
     case 'openai':
       return new OpenAIProvider(config.openai.apiKey, config.openai.model, config.openai.baseURL);
     case 'claude':
-      return new ClaudeProvider(config.claude.apiKey, config.claude.model);
+      return new ClaudeProvider(config.claude.apiKey, config.claude.model, config.claude.baseURL);
     default:
       throw new Error(`Unsupported LLM provider: ${config.provider}`);
   }
