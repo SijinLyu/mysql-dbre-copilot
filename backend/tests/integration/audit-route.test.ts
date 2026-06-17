@@ -89,4 +89,21 @@ describe('Audit REST API', () => {
     expect(res.status).toBe(200);
     expect(res.body.entries.length).toBe(1);
   });
+
+  it('waits for store initialization before querying a fresh logger', async () => {
+    const freshDbPath = path.join(process.cwd(), 'test-audit-route-fresh.db');
+    if (fs.existsSync(freshDbPath)) fs.unlinkSync(freshDbPath);
+    const freshLogger = new AuditLogger(freshDbPath);
+    const freshApp = express();
+    freshApp.use('/api/audit', createAuditRouter(freshLogger));
+
+    try {
+      const res = await request(freshApp).get('/api/audit');
+      expect(res.status).toBe(200);
+      expect(res.body.entries).toEqual([]);
+    } finally {
+      freshLogger.close();
+      if (fs.existsSync(freshDbPath)) fs.unlinkSync(freshDbPath);
+    }
+  });
 });

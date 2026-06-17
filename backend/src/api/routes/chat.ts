@@ -26,9 +26,10 @@ export function createChatRouter(chatService: ChatService, auditLogger: AuditLog
           userMessage: input.message,
           generatedSql: response.sql,
           safetyReport: response.safetyReport,
-          executed: response.safetyReport.executionAllowed && Array.isArray(response.results),
+          executed: response.safetyReport.executionAllowed && response.resultCount !== undefined,
           executionTimeMs: response.executionTimeMs,
           rowCount: response.resultCount,
+          error: response.error,
         });
       }
 

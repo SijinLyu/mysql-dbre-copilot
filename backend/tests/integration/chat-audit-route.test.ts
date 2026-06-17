@@ -77,4 +77,61 @@ describe('Chat audit logging', () => {
       rowCount: 1,
     });
   });
+
+  it('records generated SQL when later processing fails', async () => {
+    const failingLogger = new AuditLogger(path.join(process.cwd(), 'test-chat-audit-failure.db'));
+    await (failingLogger as any).store.ensureReady();
+
+    const failingApp = express();
+    failingApp.use(express.json());
+    failingApp.use('/api/chat', createChatRouter({
+      processMessage: jest.fn().mockResolvedValue({
+        id: 'msg-2',
+        sessionId: 'session-2',
+        message: 'I encountered an error: summary provider unavailable',
+        sql: 'SELECT * FROM orders LIMIT 10',
+        results: [{ id: 1 }],
+        resultCount: 1,
+        executionTimeMs: 20,
+        safetyReport: {
+          riskLevel: RiskLevel.LOW,
+          riskScore: 8,
+          sqlType: 'SELECT',
+          checks: [],
+          recommendation: 'execute',
+          suggestions: [],
+          executionAllowed: true,
+        },
+        error: 'summary provider unavailable',
+        followUpSuggestions: [],
+        timestamp: new Date(),
+      }),
+      getHistory: jest.fn().mockReturnValue([]),
+      clearHistory: jest.fn(),
+    } as any, failingLogger));
+
+    try {
+      const res = await request(failingApp).post('/api/chat').send({
+        sessionId: 'session-2',
+        connectionId: 'demo',
+        message: 'show orders',
+        database: 'demo',
+      });
+
+      expect(res.status).toBe(200);
+
+      const entries = failingLogger.query({ sessionId: 'session-2' });
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatchObject({
+        userMessage: 'show orders',
+        generatedSql: 'SELECT * FROM orders LIMIT 10',
+        executed: true,
+        error: 'summary provider unavailable',
+      });
+    } finally {
+      failingLogger.close();
+      const dbPath = path.join(process.cwd(), 'test-chat-audit-failure.db');
+      if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+    }
+  });
 });

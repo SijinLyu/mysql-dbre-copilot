@@ -42,6 +42,10 @@ export class AuditLogger {
     this.insertEntry(params);
   }
 
+  async ready(): Promise<void> {
+    await this.store.ensureReady();
+  }
+
   private insertEntry(params: {
     sessionId: string;
     connectionId: string;

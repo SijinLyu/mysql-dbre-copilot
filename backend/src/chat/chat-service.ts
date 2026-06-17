@@ -26,6 +26,7 @@ export interface ChatResponse {
   chartRecommendation?: ChartRecommendation;
   followUpSuggestions: string[];
   safetyReport?: SafetyReport;
+  error?: string;
   timestamp: Date;
 }
 
@@ -55,6 +56,11 @@ export class ChatService {
   async processMessage(request: ChatRequest): Promise<ChatResponse> {
     const { sessionId, message, database } = request;
     const startTime = Date.now();
+    let generatedSql: string | undefined;
+    let safetyReport: SafetyReport | undefined;
+    let executionTimeMs: number | undefined;
+    let resultCount: number | undefined;
+    let resultPreview: any[] | undefined;
 
     this.conversationManager.addMessage(sessionId, {
       id: uuidv4(),
@@ -75,10 +81,11 @@ export class ChatService {
 
       // Generate SQL
       const sql = await this.sqlGenerator.generate(message, schemaContext, historyContext);
+      generatedSql = sql;
       logger.info('SQL generated', { sessionId, sql });
 
       // Safety analysis
-      const safetyReport = await this.safetyPipeline.analyze(sql);
+      safetyReport = await this.safetyPipeline.analyze(sql);
       logger.info('Safety analysis complete', {
         sessionId,
         riskLevel: safetyReport.riskLevel,
@@ -117,7 +124,9 @@ export class ChatService {
       // Execute query (safety passed)
       const [rows] = await this.pool.query(sql);
       const results = rows as any[];
-      const executionTimeMs = Date.now() - startTime;
+      executionTimeMs = Date.now() - startTime;
+      resultCount = results.length;
+      resultPreview = results.slice(0, 100);
 
       // Summarize results
       const { summary, followUpSuggestions } = await this.resultSummarizer.summarize(
@@ -145,8 +154,8 @@ export class ChatService {
         sessionId,
         message: summary,
         sql,
-        results: results.slice(0, 100),
-        resultCount: results.length,
+        results: resultPreview,
+        resultCount,
         executionTimeMs,
         chartRecommendation,
         safetyReport,
@@ -169,6 +178,12 @@ export class ChatService {
         id: errorResponse.id,
         sessionId,
         message: `I encountered an error: ${err.message}`,
+        sql: generatedSql,
+        results: resultPreview,
+        resultCount,
+        executionTimeMs,
+        safetyReport,
+        error: err.message,
         followUpSuggestions: ['Try rephrasing your question', 'Check if the database connection is active'],
         timestamp: new Date(),
       };

@@ -4,8 +4,9 @@ import { AuditLogger } from '../../audit/index.js';
 export function createAuditRouter(auditLogger: AuditLogger): Router {
   const router = Router();
 
-  router.get('/', (req: Request, res: Response) => {
+  router.get('/', async (req: Request, res: Response) => {
     try {
+      await auditLogger.ready();
       const { sessionId, riskLevel, startDate, endDate, limit, offset } = req.query;
 
       const entries = auditLogger.query({
@@ -24,8 +25,9 @@ export function createAuditRouter(auditLogger: AuditLogger): Router {
     }
   });
 
-  router.get('/stats', (_req: Request, res: Response) => {
+  router.get('/stats', async (_req: Request, res: Response) => {
     try {
+      await auditLogger.ready();
       const stats = auditLogger.getStats();
       res.json(stats);
     } catch (error) {
