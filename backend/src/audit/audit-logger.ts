@@ -23,6 +23,37 @@ export class AuditLogger {
     rowCount?: number;
     error?: string;
   }): void {
+    this.insertEntry(params);
+  }
+
+  async logAsync(params: {
+    sessionId: string;
+    connectionId: string;
+    database: string;
+    userMessage: string;
+    generatedSql: string;
+    safetyReport: SafetyReport;
+    executed: boolean;
+    executionTimeMs?: number;
+    rowCount?: number;
+    error?: string;
+  }): Promise<void> {
+    await this.store.ensureReady();
+    this.insertEntry(params);
+  }
+
+  private insertEntry(params: {
+    sessionId: string;
+    connectionId: string;
+    database: string;
+    userMessage: string;
+    generatedSql: string;
+    safetyReport: SafetyReport;
+    executed: boolean;
+    executionTimeMs?: number;
+    rowCount?: number;
+    error?: string;
+  }): void {
     const entry: AuditEntry = {
       id: uuidv4(),
       sessionId: params.sessionId,
@@ -34,9 +65,9 @@ export class AuditLogger {
       riskLevel: params.safetyReport.riskLevel,
       riskScore: params.safetyReport.riskScore,
       executed: params.executed,
-      executionTimeMs: params.executionTimeMs || null,
-      rowCount: params.rowCount || null,
-      error: params.error || null,
+      executionTimeMs: params.executionTimeMs ?? null,
+      rowCount: params.rowCount ?? null,
+      error: params.error ?? null,
     };
 
     try {

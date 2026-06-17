@@ -23,7 +23,7 @@ const mockEntries = [
     timestamp: '2026-06-15T10:00:00Z',
     userMessage: 'Show all users',
     generatedSql: 'SELECT * FROM users',
-    riskLevel: 'LOW',
+    riskLevel: 'low',
     riskScore: 10,
     executed: true,
     executionTimeMs: 45,
@@ -38,7 +38,7 @@ const mockEntries = [
     timestamp: '2026-06-15T11:00:00Z',
     userMessage: 'Drop table',
     generatedSql: 'DROP TABLE users',
-    riskLevel: 'CRITICAL',
+    riskLevel: 'critical',
     riskScore: 95,
     executed: false,
     executionTimeMs: null,
@@ -49,7 +49,7 @@ const mockEntries = [
 
 const mockStats = {
   total: 2,
-  byRisk: { LOW: 1, MEDIUM: 0, HIGH: 0, CRITICAL: 1 },
+  byRisk: { low: 1, medium: 0, high: 0, critical: 1 },
   avgScore: 52.5,
 };
 
@@ -109,7 +109,7 @@ describe('AuditPanel', () => {
 
     await waitFor(() => {
       expect(api.audit.list).toHaveBeenCalledWith(
-        expect.objectContaining({ riskLevel: 'HIGH' }),
+        expect.objectContaining({ riskLevel: 'high' }),
       );
     });
   });

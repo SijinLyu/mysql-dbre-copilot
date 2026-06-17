@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
+type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
 interface AuditEntry {
   id: string;
   sessionId: string;
@@ -9,7 +11,7 @@ interface AuditEntry {
   timestamp: string;
   userMessage: string;
   generatedSql: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  riskLevel: RiskLevel | Uppercase<RiskLevel>;
   riskScore: number;
   executed: boolean;
   executionTimeMs: number | null;
@@ -23,12 +25,17 @@ interface AuditStats {
   avgScore: number;
 }
 
-const RISK_COLORS: Record<string, string> = {
-  LOW: '#22c55e',
-  MEDIUM: '#eab308',
-  HIGH: '#f97316',
-  CRITICAL: '#ef4444',
-};
+const RISK_LEVELS: Array<{ value: RiskLevel; label: string; color: string }> = [
+  { value: 'low', label: 'LOW', color: '#22c55e' },
+  { value: 'medium', label: 'MEDIUM', color: '#eab308' },
+  { value: 'high', label: 'HIGH', color: '#f97316' },
+  { value: 'critical', label: 'CRITICAL', color: '#ef4444' },
+];
+
+const RISK_COLORS = Object.fromEntries(RISK_LEVELS.map(level => [level.value, level.color]));
+
+const normalizeRisk = (risk: string): RiskLevel => risk.toLowerCase() as RiskLevel;
+const formatRisk = (risk: string) => risk.toUpperCase();
 
 export const AuditPanel: React.FC = () => {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
@@ -65,7 +72,7 @@ export const AuditPanel: React.FC = () => {
     };
     const rows = entries.map(e => [
       e.timestamp,
-      e.riskLevel,
+      formatRisk(e.riskLevel),
       String(e.riskScore),
       escapeField(e.userMessage),
       escapeField(e.generatedSql),
@@ -114,7 +121,7 @@ export const AuditPanel: React.FC = () => {
             className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
           >
-            {loading ? 'Refreshing…' : 'Refresh'}
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -123,12 +130,12 @@ export const AuditPanel: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
           <StatCard label="Total" value={String(stats.total)} />
           <StatCard label="Avg Score" value={stats.avgScore?.toFixed?.(1) ?? '0'} />
-          {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const).map(level => (
+          {RISK_LEVELS.map(level => (
             <StatCard
-              key={level}
-              label={level}
-              value={String(stats.byRisk?.[level] ?? 0)}
-              color={RISK_COLORS[level]}
+              key={level.value}
+              label={level.label}
+              value={String(stats.byRisk?.[level.value] ?? stats.byRisk?.[level.label] ?? 0)}
+              color={level.color}
             />
           ))}
         </div>
@@ -136,18 +143,18 @@ export const AuditPanel: React.FC = () => {
 
       <div className="flex gap-2 mb-3 items-center">
         <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Filter:</span>
-        {['', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(level => (
+        {[{ value: '', label: 'All' }, ...RISK_LEVELS].map(level => (
           <button
-            key={level || 'all'}
-            onClick={() => setRiskFilter(level)}
+            key={level.value || 'all'}
+            onClick={() => setRiskFilter(level.value)}
             className="px-2.5 py-1 rounded-md text-xs font-medium transition-all border"
             style={
-              riskFilter === level
+              riskFilter === level.value
                 ? { background: 'var(--accent-soft)', color: 'var(--accent)', borderColor: 'var(--accent)' }
                 : { background: 'transparent', color: 'var(--text-secondary)', borderColor: 'var(--border)' }
             }
           >
-            {level || 'All'}
+            {level.label}
           </button>
         ))}
       </div>
@@ -179,40 +186,43 @@ export const AuditPanel: React.FC = () => {
                   </td>
                 </tr>
               )}
-              {entries.map(e => (
-                <tr
-                  key={e.id}
-                  onClick={() => setSelected(e)}
-                  className="cursor-pointer transition-colors"
-                  style={{
-                    color: 'var(--text-primary)',
-                    background: selected?.id === e.id ? 'var(--accent-soft)' : 'transparent',
-                    borderTop: '1px solid var(--border)',
-                  }}
-                >
-                  <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(e.timestamp).toLocaleString()}
-                  </td>
-                  <td className="px-3 py-2 text-xs">
-                    <span
-                      className="px-2 py-0.5 rounded font-semibold"
-                      style={{ background: RISK_COLORS[e.riskLevel] + '22', color: RISK_COLORS[e.riskLevel] }}
-                    >
-                      {e.riskLevel}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-xs">{e.riskScore}</td>
-                  <td className="px-3 py-2 text-xs max-w-[14rem] truncate">{e.userMessage}</td>
-                  <td className="px-3 py-2 text-xs max-w-[20rem] truncate font-mono">{e.generatedSql}</td>
-                  <td className="px-3 py-2 text-xs">
-                    {e.executed ? (
-                      <span style={{ color: '#22c55e' }}>✓ {e.executionTimeMs}ms</span>
-                    ) : (
-                      <span style={{ color: 'var(--text-muted)' }}>—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {entries.map(e => {
+                const risk = normalizeRisk(e.riskLevel);
+                return (
+                  <tr
+                    key={e.id}
+                    onClick={() => setSelected(e)}
+                    className="cursor-pointer transition-colors"
+                    style={{
+                      color: 'var(--text-primary)',
+                      background: selected?.id === e.id ? 'var(--accent-soft)' : 'transparent',
+                      borderTop: '1px solid var(--border)',
+                    }}
+                  >
+                    <td className="px-3 py-2 text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
+                      {new Date(e.timestamp).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 text-xs">
+                      <span
+                        className="px-2 py-0.5 rounded font-semibold"
+                        style={{ background: RISK_COLORS[risk] + '22', color: RISK_COLORS[risk] }}
+                      >
+                        {formatRisk(e.riskLevel)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-xs">{e.riskScore}</td>
+                    <td className="px-3 py-2 text-xs max-w-[14rem] truncate">{e.userMessage}</td>
+                    <td className="px-3 py-2 text-xs max-w-[20rem] truncate font-mono">{e.generatedSql}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {e.executed ? (
+                        <span style={{ color: '#22c55e' }}>yes {e.executionTimeMs}ms</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>no</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -228,12 +238,12 @@ export const AuditPanel: React.FC = () => {
                 onClick={() => setSelected(null)}
                 className="text-xs"
                 style={{ color: 'var(--text-muted)' }}
-              >✕</button>
+              >Close</button>
             </div>
             <DetailRow label="ID" value={selected.id} />
             <DetailRow label="Session" value={selected.sessionId} />
             <DetailRow label="Connection" value={`${selected.connectionId} / ${selected.database}`} />
-            <DetailRow label="Risk" value={`${selected.riskLevel} (score ${selected.riskScore})`} />
+            <DetailRow label="Risk" value={`${formatRisk(selected.riskLevel)} (score ${selected.riskScore})`} />
             <DetailRow label="Executed" value={selected.executed ? 'yes' : 'no'} />
             {selected.rowCount != null && <DetailRow label="Rows" value={String(selected.rowCount)} />}
             {selected.error && <DetailRow label="Error" value={selected.error} />}

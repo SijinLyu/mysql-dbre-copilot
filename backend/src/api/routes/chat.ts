@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { ChatService } from '../../chat/index.js';
+import { AuditLogger } from '../../audit/index.js';
 import { chatMessageSchema } from '../validators/chat.js';
 import { logger } from '../../utils/logger.js';
 
-export function createChatRouter(chatService: ChatService): Router {
+export function createChatRouter(chatService: ChatService, auditLogger: AuditLogger): Router {
   const router = Router();
 
   router.post('/', async (req: Request, res: Response) => {
@@ -16,6 +17,20 @@ export function createChatRouter(chatService: ChatService): Router {
         message: input.message,
         database: input.database,
       });
+
+      if (response.sql && response.safetyReport) {
+        await auditLogger.logAsync({
+          sessionId: input.sessionId,
+          connectionId: input.connectionId,
+          database: input.database,
+          userMessage: input.message,
+          generatedSql: response.sql,
+          safetyReport: response.safetyReport,
+          executed: response.safetyReport.executionAllowed && Array.isArray(response.results),
+          executionTimeMs: response.executionTimeMs,
+          rowCount: response.resultCount,
+        });
+      }
 
       res.json(response);
     } catch (error) {

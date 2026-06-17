@@ -100,7 +100,7 @@ export class AuditStore {
 
     if (options.riskLevel) {
       sql += ' AND risk_level = ?';
-      params.push(options.riskLevel);
+      params.push(String(options.riskLevel).toLowerCase());
     }
 
     if (options.startDate) {

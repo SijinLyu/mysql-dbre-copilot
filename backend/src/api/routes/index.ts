@@ -15,7 +15,7 @@ export function createApiRouter(
 ): Router {
   const router = Router();
 
-  router.use('/chat', createChatRouter(chatService));
+  router.use('/chat', createChatRouter(chatService, auditLogger));
   router.use('/connections', createConnectionsRouter());
   router.use('/schema', createSchemaRouter(schemaCache));
   router.use('/audit', createAuditRouter(auditLogger));
